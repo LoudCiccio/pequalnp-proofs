@@ -174,7 +174,8 @@ theorem PEqualNP.Outside.R_meta_3262_421
       exact decide_eq_true ⟨a,p a,matched a,rfl,rfl⟩
     change (C.gates.foldl step (List.ofFn all)).getD C.output false = true at ht
     by_contra! notLive
-    rw [List.getD_eq_default _ _ (by simpa [lengthOf, Circuit.size] using notLive)] at ht
+    change n + n + C.gates.length ≤ C.output at notLive
+    rw [List.getD_eq_default _ _ (by simpa [lengthOf] using notLive)] at ht
     contradiction
   let k := E.card + n - 2 - C.size
   let dummy : Gate := ⟨GateOp.or, [0, 0]⟩
@@ -201,8 +202,9 @@ theorem PEqualNP.Outside.R_meta_3262_421
           simp at hj
           omega
         have eq : gateAt D j = dummy := by
-          simp only [gateAt, D, List.getD_eq_getElem?_getD, List.getElem?_append_right ge]
-          simp [List.getElem?_replicate, idx]
+          change (C.gates ++ List.replicate k dummy).getD j ⟨GateOp.or, []⟩ = dummy
+          simp only [List.getD_eq_getElem?_getD, List.getElem?_append_right ge]
+          simp [idx]
         rw [eq] at hi
         have iz : i = 0 := by simpa [dummy] using hi
         omega
@@ -221,10 +223,13 @@ theorem PEqualNP.Outside.R_meta_3262_421
       circuitFun (n+n) D x = decide (∃ a b, (a,b) ∈ E ∧
         x (Fin.castAdd n a) = true ∧ x (Fin.natAdd n b) = true) := by
     change ((C.gates ++ List.replicate k dummy).foldl step (List.ofFn x)).getD C.output false = _
-    rw [List.foldl_append, keep _ _ _ (by simpa [lengthOf, Circuit.size] using live)]
+    change C.output < n + n + C.gates.length at live
+    rw [List.foldl_append, keep _ _ _ (by simpa [lengthOf] using live)]
     exact computes x
   have exactSize : D.size + 2 = E.card + n := by
-    simp [D, Circuit.size, k]
+    change (C.gates ++ List.replicate k dummy).length + 2 = E.card + n
+    simp only [List.length_append, List.length_replicate]
+    change C.gates.length + (E.card + n - 2 - C.gates.length) + 2 = E.card + n
     change C.gates.length + 1 < E.card + n at small
     omega
   exact moreEdges n E p D noFour matched modelD computesD (by omega) exactSize
