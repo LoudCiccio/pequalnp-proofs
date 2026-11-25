@@ -138,7 +138,8 @@ theorem PEqualNP.Outside.R_meta_3262_421
       · by_contra hm
         apply fromMissing r l hm
         · funext i
-          simp only [hi, or_comm]
+          change decide (i = l ∨ i = r) = decide (i = r ∨ i = l)
+          exact decide_eq_decide.mpr or_comm
         · rintro ⟨a',b',_,_,h⟩
           exact distinct a b' h.symm
     have contains : ∀ (i : Fin (n+n)), i.val ∈ I := by
